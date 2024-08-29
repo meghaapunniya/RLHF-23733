@@ -1,0 +1,52 @@
+======================================== Model A: Turn 1 =================================
+
+Input:
+N/A
+
+Output:
+Displays a dark themed medication reminder widget that allows to schedule the dose but fails 
+to remind.
+
+======================================== Model B: Turn 1 =================================
+
+Input:
+N/A
+
+Output:
+Displays a medication reminder widget that allows to schedule the dose and reminds 
+but the tone is not heard.
+
+======================================== Model A: Turn 2 =================================
+
+Input:
+N/A
+
+Output:
+Displays a medication reminder widget that has to log the dose history and 
+medications (Failed)
+
+======================================== Model B: Turn 2 =================================
+
+Input:
+N/A
+
+Output:
+Displays a  medication reminder widget that logs the dose history and medications
+
+======================================== Model A: Turn 3 =================================
+
+Input:
+N/A
+
+Output:
+Displays a dark themed medication reminder widget that has to log the refill history along
+with the refill reminder (failed)
+
+======================================== Model B: Turn 3 =================================
+
+Input:
+N/A
+
+Output:
+Displays a dark themed medication reminder widget that has logs the refill history along
+with the refill reminder

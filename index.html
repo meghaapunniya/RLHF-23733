@@ -1,0 +1,1098 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Medication Reminder</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+    <style>
+      body {
+        font-size: 16px;
+      }
+      #schedule {
+        margin-top: 20px;
+      }
+      .medication {
+        border-bottom: 1px solid #ccc;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Granny's Medication Schedule</h2>
+    <div id="medicationForm">
+      <input type="text" id="medName" placeholder="Medication Name" />
+      <input type="text" id="dosage" placeholder="Dosage" />
+      <input type="number" id="frequency" placeholder="Frequency (times/day)" />
+      <input type="time" id="time" placeholder="Time" />
+      <button onclick="addMedication()">Add Medication</button>
+    </div>
+
+    <div id="schedule"></div>
+
+    <script>
+      let medications = [];
+
+      function addMedication() {
+        let med = {
+          name: document.getElementById("medName").value,
+          dosage: document.getElementById("dosage").value,
+          frequency: document.getElementById("frequency").value,
+          time: document.getElementById("time").value,
+        };
+        if (med.name && med.dosage && med.frequency && med.time) {
+          medications.push(med);
+          updateSchedule();
+          // Clear fields for next entry
+          document.getElementById("medName").value = "";
+          document.getElementById("dosage").value = "";
+          document.getElementById("frequency").value = "";
+          document.getElementById("time").value = "";
+        } else {
+          alert("Please fill all fields.");
+        }
+      }
+
+      function updateSchedule() {
+        let scheduleDiv = document.getElementById("schedule");
+        scheduleDiv.innerHTML = ""; // Clear previous content
+        medications.forEach((med, index) => {
+          let medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `<strong>${med.name}</strong> - ${med.dosage} at ${med.time} (x${med.frequency}) <button onclick="removeMedication(${index})">Remove</button>`;
+          scheduleDiv.appendChild(medDiv);
+        });
+        localStorage.setItem("medications", JSON.stringify(medications));
+      }
+
+      function removeMedication(index) {
+        medications.splice(index, 1);
+        updateSchedule();
+      }
+
+      // Load saved medications on start
+      if (localStorage.getItem("medications")) {
+        medications = JSON.parse(localStorage.getItem("medications"));
+        updateSchedule();
+      }
+
+      // Placeholder for reminder functionality - this would need server-side or native app support for real reminders
+      function setReminder(med) {
+        // This is where you would integrate with a notification API or service
+        console.log("Reminder set for:", med);
+      }
+    </script>
+  </body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medication Reminder Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      input,
+      select,
+      button {
+        padding: 5px;
+        font-size: 16px;
+      }
+      #medicationList {
+        margin-top: 20px;
+      }
+      .medication {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Medication Reminder Widget</h1>
+    <form id="medicationForm">
+      <input
+        type="text"
+        id="medicationName"
+        placeholder="Medication Name"
+        required
+      />
+      <input type="text" id="dosage" placeholder="Dosage" required />
+      <select id="frequency" required>
+        <option value="">Select Frequency</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <input type="time" id="time" required />
+      <input type="text" id="instructions" placeholder="Special Instructions" />
+      <select id="reminderTone">
+        <option value="default">Default Tone</option>
+        <option value="bell">Bell</option>
+        <option value="chime">Chime</option>
+      </select>
+      <button type="submit">Add Medication</button>
+    </form>
+    <div id="medicationList"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+      let medications = [];
+
+      document
+        .getElementById("medicationForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          addMedication();
+        });
+
+      function addMedication() {
+        const medication = {
+          name: document.getElementById("medicationName").value,
+          dosage: document.getElementById("dosage").value,
+          frequency: document.getElementById("frequency").value,
+          time: document.getElementById("time").value,
+          instructions: document.getElementById("instructions").value,
+          reminderTone: document.getElementById("reminderTone").value,
+        };
+
+        medications.push(medication);
+        displayMedications();
+        setReminder(medication);
+        document.getElementById("medicationForm").reset();
+      }
+
+      function displayMedications() {
+        const list = document.getElementById("medicationList");
+        list.innerHTML = "";
+        medications.forEach((med, index) => {
+          const medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `
+                    <h3>${med.name}</h3>
+                    <p>Dosage: ${med.dosage}</p>
+                    <p>Frequency: ${med.frequency}</p>
+                    <p>Time: ${med.time}</p>
+                    <p>Instructions: ${med.instructions}</p>
+                    <button onclick="removeMedication(${index})">Remove</button>
+                `;
+          list.appendChild(medDiv);
+        });
+      }
+
+      function removeMedication(index) {
+        medications.splice(index, 1);
+        displayMedications();
+      }
+
+      function setReminder(medication) {
+        const now = moment();
+        const reminderTime = moment(medication.time, "HH:mm");
+
+        if (reminderTime.isBefore(now)) {
+          reminderTime.add(1, "day");
+        }
+
+        const msUntilReminder = reminderTime.diff(now);
+
+        setTimeout(() => {
+          showReminder(medication);
+          if (medication.frequency === "daily") {
+            setReminder(medication);
+          } else if (medication.frequency === "weekly") {
+            setTimeout(() => setReminder(medication), 7 * 24 * 60 * 60 * 1000);
+          } else if (medication.frequency === "monthly") {
+            setTimeout(() => setReminder(medication), 30 * 24 * 60 * 60 * 1000);
+          }
+        }, msUntilReminder);
+      }
+
+      function showReminder(medication) {
+        toastr.options = {
+          closeButton: true,
+          progressBar: true,
+          timeOut: 0,
+          extendedTimeOut: 0,
+          onclick: () => {
+            playReminderTone(medication.reminderTone);
+          },
+        };
+
+        toastr.info(
+          `Time to take ${medication.name}<br>Dosage: ${medication.dosage}<br>Instructions: ${medication.instructions}`,
+          "Medication Reminder",
+          { timeOut: 0, extendedTimeOut: 0 }
+        );
+      }
+
+      function playReminderTone(tone) {
+        const audio = new Audio(
+          `https://commondatastorage.googleapis.com/codeskulptor-assets/jump.ogg`
+        );
+        audio.play();
+      }
+      // function playReminderTone(tone) {
+      //   const tones = {
+      //     default: "https://example.com/sounds/default.mp3",
+      //     bell: "https://elements.envato.com/bell-QVQMGF2?utm_source=mixkit&utm_medium=referral&utm_campaign=elements_mixkit_cs_sfx_tag_31JULY2024&utm_content=www.google.com&_ga=2.246501252.1263543096.1724437754-2138625631.1724437754",
+      //     chime: "https://example.com/sounds/chime.mp3",
+      //   };
+
+      //   const audioSrc = tones[tone] || tones["default"];
+      //   const audio = new Audio(audioSrc);
+
+      //   // Attempt to play the tone immediately; if it fails, prompt the user to click the notification
+      //   audio.play().catch(() => {
+      //     toastr.info(
+      //       "Click here to play the reminder tone.",
+      //       "Medication Reminder",
+      //       {
+      //         onclick: () => {
+      //           audio.play();
+      //         },
+      //       }
+      //     );
+      //   });
+      // }
+    </script>
+  </body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enhanced Medication Reminder Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+    />
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        padding: 20px;
+        max-width: 800px;
+        margin: auto;
+        background-color: #f4f4f4;
+      }
+      .form-container,
+      .history-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      button,
+      input,
+      select {
+        margin: 5px 0;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .medication {
+        background: #e9e9e9;
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 5px solid #007bff;
+      }
+      .log-btn {
+        width: auto;
+        cursor: pointer;
+      }
+      #historyLog {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h2>Add Medication</h2>
+      <form id="medicationForm">
+        <input
+          type="text"
+          id="medicationName"
+          placeholder="Medication Name"
+          required
+        />
+        <input type="text" id="dosage" placeholder="Dosage" required />
+        <select id="frequency" required>
+          <option value="">Select Frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <input type="time" id="time" required />
+        <input
+          type="text"
+          id="instructions"
+          placeholder="Special Instructions"
+        />
+        <select id="reminderTone">
+          <option value="default">Default Tone</option>
+          <option value="bell">Bell</option>
+          <option value="chime">Chime</option>
+        </select>
+        <button type="submit">Add Medication</button>
+      </form>
+    </div>
+    <div class="history-container">
+      <h2>Medication History</h2>
+      <div id="historyLog"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+      let medications = [];
+      let history = [];
+
+      document
+        .getElementById("medicationForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          addMedication();
+        });
+
+      function addMedication() {
+        const medication = {
+          name: document.getElementById("medicationName").value,
+          dosage: document.getElementById("dosage").value,
+          frequency: document.getElementById("frequency").value,
+          time: document.getElementById("time").value,
+          instructions: document.getElementById("instructions").value,
+          reminderTone: document.getElementById("reminderTone").value,
+        };
+
+        medications.push(medication);
+        displayMedications();
+        setReminder(medication);
+        document.getElementById("medicationForm").reset();
+      }
+
+      function displayMedications() {
+        // Display medications as before, but now include buttons for logging
+        medications.forEach((med, index) => {
+          let medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `
+                const medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `
+                    <h3>${med.name}</h3>
+                    <p>Dosage: ${med.dosage}</p>
+                    <p>Frequency: ${med.frequency}</p>
+                    <p>Time: ${med.time}</p>
+                    <p>Instructions: ${med.instructions}</p>
+                    <button onclick="removeMedication(${index})">Remove</button>
+                    <button onclick="logDose(${index}, 'taken')">Taken</button>
+                <button onclick="logDose(${index}, 'missed')">Missed</button>
+                `;
+          list.appendChild(medDiv);
+
+            `;
+          // Append to medication list
+        });
+      }
+
+      function logDose(index, status) {
+        let now = moment().format("YYYY-MM-DD HH:mm:ss");
+        let logEntry = {
+          medication: medications[index].name,
+          status: status,
+          time: now,
+        };
+        history.push(logEntry);
+        updateHistoryDisplay();
+        // Optionally, provide feedback to the user
+        toastr.success(`Logged ${status} for ${medications[index].name}`);
+      }
+
+      function updateHistoryDisplay() {
+        let logDiv = document.getElementById("historyLog");
+        logDiv.innerHTML = ""; // Clear previous entries
+        history.forEach((log) => {
+          let entry = document.createElement("div");
+          entry.textContent = `${log.medication} - ${log.status} at ${log.time}`;
+          logDiv.appendChild(entry);
+        });
+      }
+
+      function setReminder(medication) {
+        // Similar to previous, but now also consider logging if a reminder is missed
+        // You would need to check if the reminder was acknowledged or not
+      }
+
+      // Placeholder for playing sounds, etc.
+      function playReminderTone(tone) {
+        // Sound playing logic
+      }
+    </script>
+  </body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enhanced Medication Reminder Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1,
+      h2 {
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      input,
+      select,
+      button {
+        padding: 5px;
+        font-size: 16px;
+      }
+      #medicationList,
+      #doseHistory {
+        margin-top: 20px;
+      }
+      .medication,
+      .dose-entry {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .dose-actions {
+        margin-top: 10px;
+      }
+      .taken {
+        background-color: #d4edda;
+      }
+      .missed {
+        background-color: #f8d7da;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Enhanced Medication Reminder Widget</h1>
+    <form id="medicationForm">
+      <input
+        type="text"
+        id="medicationName"
+        placeholder="Medication Name"
+        required
+      />
+      <input type="text" id="dosage" placeholder="Dosage" required />
+      <select id="frequency" required>
+        <option value="">Select Frequency</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <input
+        type="number"
+        id="daysLeft"
+        placeholder="Days of medication left"
+        min="0"
+      />
+      <input type="time" id="time" required />
+      <input type="text" id="instructions" placeholder="Special Instructions" />
+      <select id="reminderTone">
+        <option value="default">Default Tone</option>
+        <option value="bell">Bell</option>
+        <option value="chime">Chime</option>
+      </select>
+
+      <button type="submit">Add Medication</button>
+    </form>
+    <h2>Medication List</h2>
+    <div id="medicationList"></div>
+    <div id="refillHistory"></div>
+    <h2>Dose History</h2>
+    <div id="doseHistory"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+      let medications = [];
+      let doseHistory = [];
+      let refillHistory = [];
+
+      document
+        .getElementById("medicationForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const newMed = {
+            id: Date.now(),
+            name: document.getElementById("medicationName").value,
+            dosage: document.getElementById("dosage").value,
+            frequency: document.getElementById("frequency").value,
+            time: document.getElementById("time").value,
+            instructions: document.getElementById("instructions").value,
+            reminderTone: document.getElementById("reminderTone").value,
+          };
+          const interactionWarnings = checkInteractions(newMed);
+          if (interactionWarnings.length) {
+            if (
+              confirm(
+                interactionWarnings.join("\n") +
+                  "\n\nDo you still want to add this medication?"
+              )
+            ) {
+              addMedication(newMed);
+            }
+          } else {
+            addMedication(newMed);
+          }
+        });
+
+      // Function to check for drug interactions (simulated)
+      function checkInteractions(newMedication) {
+        const interactions = {
+          Aspirin: ["Ibuprofen"], // Example: Aspirin interacts with Ibuprofen
+          Warfarin: ["Vitamin K"],
+        };
+        let warnings = [];
+        medications.forEach((med) => {
+          if (
+            interactions[med.name] &&
+            interactions[med.name].includes(newMedication.name)
+          ) {
+            warnings.push(
+              `Warning: ${med.name} might interact with ${newMedication.name}`
+            );
+          }
+        });
+        return warnings;
+      }
+
+      function addMedication() {
+        const medication = {
+          id: Date.now(),
+          name: document.getElementById("medicationName").value,
+          dosage: document.getElementById("dosage").value,
+          frequency: document.getElementById("frequency").value,
+          time: document.getElementById("time").value,
+          instructions: document.getElementById("instructions").value,
+          reminderTone: document.getElementById("reminderTone").value,
+        };
+
+        medications.push(medication);
+        displayMedications();
+        setReminder(medication);
+        setRefillReminder(medication);
+        document.getElementById("medicationForm").reset();
+      }
+
+      function displayMedications() {
+        const list = document.getElementById("medicationList");
+        list.innerHTML = "";
+        medications.forEach((med) => {
+          const medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `
+                    <h3>${med.name}</h3>
+                    <p>Dosage: ${med.dosage}</p>
+                    <p>Frequency: ${med.frequency}</p>
+                    <p>Time: ${med.time}</p>
+                    <p>Instructions: ${med.instructions}</p>
+                    <div class="dose-actions">
+                        <button onclick="logDose(${med.id}, 'taken')">Mark as Taken</button>
+                        <button onclick="logDose(${med.id}, 'missed')">Mark as Missed</button>
+                    </div>
+                    <button onclick="removeMedication(${med.id})">Remove</button>
+                `;
+          list.appendChild(medDiv);
+        });
+      }
+
+      function setRefillReminder(medication) {
+        if (medication.daysLeft) {
+          setTimeout(() => {
+            toastr.warning(`Time to refill ${medication.name}!`);
+            // Log refill reminder
+            refillHistory.push({ name: medication.name, date: new Date() });
+            displayRefillHistory();
+          }, medication.daysLeft * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+        }
+      }
+
+      function displayRefillHistory() {
+        const historyDiv = document.getElementById("refillHistory");
+        historyDiv.innerHTML =
+          "<h3>Refill History</h3>" +
+          refillHistory
+            .map(
+              (refill) =>
+                `<p>${
+                  refill.name
+                } refill reminder on ${refill.date.toLocaleDateString()}</p>`
+            )
+            .join("");
+      }
+
+      function removeMedication(id) {
+        medications = medications.filter((med) => med.id !== id);
+        displayMedications();
+      }
+
+      function setReminder(medication) {
+        const now = moment();
+        const reminderTime = moment(medication.time, "HH:mm");
+
+        if (reminderTime.isBefore(now)) {
+          reminderTime.add(1, "day");
+        }
+
+        const msUntilReminder = reminderTime.diff(now);
+
+        setTimeout(() => {
+          showReminder(medication);
+          if (medication.frequency === "daily") {
+            setReminder(medication);
+          } else if (medication.frequency === "weekly") {
+            setTimeout(() => setReminder(medication), 7 * 24 * 60 * 60 * 1000);
+          } else if (medication.frequency === "monthly") {
+            setTimeout(() => setReminder(medication), 30 * 24 * 60 * 60 * 1000);
+          }
+        }, msUntilReminder);
+      }
+
+      function showReminder(medication) {
+        toastr.options = {
+          closeButton: true,
+          progressBar: true,
+          timeOut: 0,
+          extendedTimeOut: 0,
+          onclick: () => {
+            playReminderTone(medication.reminderTone);
+          },
+        };
+
+        toastr.info(
+          `Time to take ${medication.name}<br>Dosage: ${medication.dosage}<br>Instructions: ${medication.instructions}`,
+          "Medication Reminder",
+          { timeOut: 0, extendedTimeOut: 0 }
+        );
+      }
+
+      function playReminderTone(tone) {
+        const audio = new Audio(`https://example.com/sounds/${tone}.mp3`);
+        audio.play();
+      }
+
+      function logDose(medicationId, status) {
+        const medication = medications.find((med) => med.id === medicationId);
+        if (medication) {
+          const doseEntry = {
+            medicationId: medicationId,
+            medicationName: medication.name,
+            status: status,
+            timestamp: new Date().toISOString(),
+          };
+          doseHistory.unshift(doseEntry);
+          displayDoseHistory();
+        }
+      }
+
+      function displayDoseHistory() {
+        const historyDiv = document.getElementById("doseHistory");
+        historyDiv.innerHTML = "";
+        doseHistory.forEach((entry) => {
+          const entryDiv = document.createElement("div");
+          entryDiv.className = `dose-entry ${entry.status}`;
+          entryDiv.innerHTML = `
+                    <p><strong>${entry.medicationName}</strong></p>
+                    <p>Status: ${
+                      entry.status.charAt(0).toUpperCase() +
+                      entry.status.slice(1)
+                    }</p>
+                    <p>Time: ${moment(entry.timestamp).format(
+                      "MMMM Do YYYY, h:mm:ss a"
+                    )}</p>
+                `;
+          historyDiv.appendChild(entryDiv);
+        });
+      }
+    </script>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comprehensive Medication Management Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1,
+      h2 {
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      input,
+      select,
+      button {
+        padding: 5px;
+        font-size: 16px;
+      }
+      #medicationList,
+      #doseHistory,
+      #refillHistory {
+        margin-top: 20px;
+      }
+      .medication,
+      .dose-entry,
+      .refill-entry {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .dose-actions {
+        margin-top: 10px;
+      }
+      .taken {
+        background-color: #d4edda;
+      }
+      .missed {
+        background-color: #f8d7da;
+      }
+      .warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Comprehensive Medication Management Widget</h1>
+    <form id="medicationForm">
+      <input
+        type="text"
+        id="medicationName"
+        placeholder="Medication Name"
+        required
+      />
+      <input type="text" id="dosage" placeholder="Dosage" required />
+      <select id="frequency" required>
+        <option value="">Select Frequency</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <input type="time" id="time" required />
+      <input type="text" id="instructions" placeholder="Special Instructions" />
+      <input
+        type="number"
+        id="quantity"
+        placeholder="Current Quantity"
+        required
+      />
+      <input
+        type="number"
+        id="refillThreshold"
+        placeholder="Refill Threshold"
+        required
+      />
+      <select id="reminderTone">
+        <option value="default">Default Tone</option>
+        <option value="bell">Bell</option>
+        <option value="chime">Chime</option>
+      </select>
+      <button type="submit">Add Medication</button>
+    </form>
+    <h2>Medication List</h2>
+    <div id="medicationList"></div>
+    <h2>Dose History</h2>
+    <div id="doseHistory"></div>
+    <h2>Refill History</h2>
+    <div id="refillHistory"></div>
+
+    <video src="RLHF-23733-IR-3.mp4"></video>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+      let medications = [];
+      let doseHistory = [];
+      let refillHistory = [];
+
+      // Simple medication interaction database (for demonstration purposes)
+      const interactionDatabase = {
+        Aspirin: ["Warfarin", "Ibuprofen"],
+        Warfarin: ["Aspirin", "Ibuprofen"],
+        Ibuprofen: ["Aspirin", "Warfarin"],
+      };
+
+      document
+        .getElementById("medicationForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          addMedication();
+        });
+
+      function addMedication() {
+        const medication = {
+          id: Date.now(),
+          name: document.getElementById("medicationName").value,
+          dosage: document.getElementById("dosage").value,
+          frequency: document.getElementById("frequency").value,
+          time: document.getElementById("time").value,
+          instructions: document.getElementById("instructions").value,
+          quantity: parseInt(document.getElementById("quantity").value),
+          refillThreshold: parseInt(
+            document.getElementById("refillThreshold").value
+          ),
+          reminderTone: document.getElementById("reminderTone").value,
+        };
+
+        medications.push(medication);
+        displayMedications();
+        setReminder(medication);
+        checkInteractions(medication);
+        document.getElementById("medicationForm").reset();
+      }
+
+      function displayMedications() {
+        const list = document.getElementById("medicationList");
+        list.innerHTML = "";
+        medications.forEach((med) => {
+          const medDiv = document.createElement("div");
+          medDiv.className = "medication";
+          medDiv.innerHTML = `
+                    <h3>${med.name}</h3>
+                    <p>Dosage: ${med.dosage}</p>
+                    <p>Frequency: ${med.frequency}</p>
+                    <p>Time: ${med.time}</p>
+                    <p>Instructions: ${med.instructions}</p>
+                    <p>Current Quantity: ${med.quantity}</p>
+                    <p>Refill Threshold: ${med.refillThreshold}</p>
+                    <div class="dose-actions">
+                        <button onclick="logDose(${med.id}, 'taken')">Mark as Taken</button>
+                        <button onclick="logDose(${med.id}, 'missed')">Mark as Missed</button>
+                        <button onclick="refillMedication(${med.id})">Refill</button>
+                    </div>
+                    <button onclick="removeMedication(${med.id})">Remove</button>
+                `;
+          list.appendChild(medDiv);
+        });
+      }
+
+      function removeMedication(id) {
+        medications = medications.filter((med) => med.id !== id);
+        displayMedications();
+      }
+
+      function setReminder(medication) {
+        const now = moment();
+        const reminderTime = moment(medication.time, "HH:mm");
+
+        if (reminderTime.isBefore(now)) {
+          reminderTime.add(1, "day");
+        }
+
+        const msUntilReminder = reminderTime.diff(now);
+
+        setTimeout(() => {
+          showReminder(medication);
+          if (medication.frequency === "daily") {
+            setReminder(medication);
+          } else if (medication.frequency === "weekly") {
+            setTimeout(() => setReminder(medication), 7 * 24 * 60 * 60 * 1000);
+          } else if (medication.frequency === "monthly") {
+            setTimeout(() => setReminder(medication), 30 * 24 * 60 * 60 * 1000);
+          }
+        }, msUntilReminder);
+      }
+
+      function showReminder(medication) {
+        toastr.options = {
+          closeButton: true,
+          progressBar: true,
+          timeOut: 0,
+          extendedTimeOut: 0,
+          onclick: () => {
+            playReminderTone(medication.reminderTone);
+          },
+        };
+
+        toastr.info(
+          `Time to take ${medication.name}<br>Dosage: ${medication.dosage}<br>Instructions: ${medication.instructions}`,
+          "Medication Reminder",
+          { timeOut: 0, extendedTimeOut: 0 }
+        );
+      }
+
+      function playReminderTone(tone) {
+        const audio = new Audio(`https://example.com/sounds/${tone}.mp3`);
+        audio.play();
+      }
+
+      function logDose(medicationId, status) {
+        const medicationIndex = medications.findIndex(
+          (med) => med.id === medicationId
+        );
+        if (medicationIndex !== -1) {
+          const medication = medications[medicationIndex];
+          if (status === "taken") {
+            medication.quantity--;
+          }
+          const doseEntry = {
+            medicationId: medicationId,
+            medicationName: medication.name,
+            status: status,
+            timestamp: new Date().toISOString(),
+          };
+          doseHistory.unshift(doseEntry);
+          displayDoseHistory();
+          checkRefillNeeded(medication);
+          medications[medicationIndex] = medication;
+          displayMedications();
+        }
+      }
+
+      function displayDoseHistory() {
+        const historyDiv = document.getElementById("doseHistory");
+        historyDiv.innerHTML = "";
+        doseHistory.slice(0, 10).forEach((entry) => {
+          const entryDiv = document.createElement("div");
+          entryDiv.className = `dose-entry ${entry.status}`;
+          entryDiv.innerHTML = `
+                    <p><strong>${entry.medicationName}</strong></p>
+                    <p>Status: ${
+                      entry.status.charAt(0).toUpperCase() +
+                      entry.status.slice(1)
+                    }</p>
+                    <p>Time: ${moment(entry.timestamp).format(
+                      "MMMM Do YYYY, h:mm:ss a"
+                    )}</p>
+                `;
+          historyDiv.appendChild(entryDiv);
+        });
+      }
+
+      function checkRefillNeeded(medication) {
+        if (medication.quantity <= medication.refillThreshold) {
+          toastr.warning(
+            `Current quantity: ${medication.quantity}. Please refill soon.`,
+            `Refill needed for ${medication.name}`,
+            { timeOut: 0, extendedTimeOut: 0 }
+          );
+        }
+      }
+
+      function refillMedication(medicationId) {
+        const medicationIndex = medications.findIndex(
+          (med) => med.id === medicationId
+        );
+        if (medicationIndex !== -1) {
+          const medication = medications[medicationIndex];
+          const refillAmount = prompt(
+            `Enter refill amount for ${medication.name}:`,
+            "30"
+          );
+          if (refillAmount !== null) {
+            medication.quantity += parseInt(refillAmount);
+            const refillEntry = {
+              medicationId: medicationId,
+              medicationName: medication.name,
+              amount: parseInt(refillAmount),
+              timestamp: new Date().toISOString(),
+            };
+            refillHistory.unshift(refillEntry);
+            displayRefillHistory();
+            medications[medicationIndex] = medication;
+            displayMedications();
+          }
+        }
+      }
+
+      function displayRefillHistory() {
+        const historyDiv = document.getElementById("refillHistory");
+        historyDiv.innerHTML = "";
+        refillHistory.slice(0, 10).forEach((entry) => {
+          const entryDiv = document.createElement("div");
+          entryDiv.className = "refill-entry";
+          entryDiv.innerHTML = `
+                    <p><strong>${entry.medicationName}</strong></p>
+                    <p>Refill Amount: ${entry.amount}</p>
+                    <p>Time: ${moment(entry.timestamp).format(
+                      "MMMM Do YYYY, h:mm:ss a"
+                    )}</p>
+                `;
+          historyDiv.appendChild(entryDiv);
+        });
+      }
+
+      function checkInteractions(newMedication) {
+        const interactions = interactionDatabase[newMedication.name] || [];
+        const currentMedications = medications.map((med) => med.name);
+        const conflictingMedications = interactions.filter((med) =>
+          currentMedications.includes(med)
+        );
+
+        if (conflictingMedications.length > 0) {
+          toastr.warning(
+            `Potential interactions with: ${conflictingMedications.join(
+              ", "
+            )}. Please consult your doctor.`,
+            "Medication Interaction Warning",
+            { timeOut: 0, extendedTimeOut: 0 }
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
